@@ -1,0 +1,3 @@
+# cached district feed fixture used by sync/test.js
+sync/district.ics
+.DS_Store
