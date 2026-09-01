@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Calendars — Subscribe</title>
+<style>
+  :root{
+    --bg:#fbfaf8; --surface:#fff; --border:#e6e2dc; --text:#1c1a17; --muted:#6b655d;
+    --accent:#1a5f7a; --accent-ink:#fff; --ok:#2d6a4f; --note-bg:#f4f1ec;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#16181c; --surface:#1e2126; --border:#2f343b; --text:#e8e6e3; --muted:#9aa1ab;
+      --accent:#6fb3cc; --accent-ink:#0d1418; --ok:#7fc9a4; --note-bg:#22262c;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px 20px 72px; background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:620px; margin:0 auto}
+  header{margin-bottom:32px}
+  h1{font-size:1.7rem; line-height:1.25; margin:0 0 8px; letter-spacing:-.02em}
+  .sub{color:var(--muted); margin:0}
+  h2{font-size:.78rem; text-transform:uppercase; letter-spacing:.09em; color:var(--muted);
+     margin:0 0 12px; font-weight:600}
+  section{margin-bottom:32px}
+
+  .seg{display:flex; flex-wrap:wrap; gap:8px}
+  .seg button{
+    flex:1 1 auto; min-width:92px; padding:11px 14px; font-size:.95rem; font-family:inherit;
+    background:var(--surface); color:var(--text); border:1px solid var(--border);
+    border-radius:10px; cursor:pointer; transition:.15s;
+  }
+  .seg button:hover{border-color:var(--accent)}
+  .seg button[aria-pressed="true"]{
+    background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600;
+  }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; margin-bottom:14px;
+  }
+  .card h3{margin:0 0 4px; font-size:1.05rem}
+  .card p{margin:0 0 16px; color:var(--muted); font-size:.9rem}
+  .row{display:flex; gap:8px; flex-wrap:wrap}
+  .btn{
+    display:inline-block; padding:11px 18px; border-radius:10px; font-size:.95rem;
+    font-weight:600; text-decoration:none; cursor:pointer; border:1px solid transparent;
+    font-family:inherit; background:var(--accent); color:var(--accent-ink);
+  }
+  .btn.ghost{background:transparent; color:var(--text); border-color:var(--border); font-weight:500}
+  .btn.ghost:hover{border-color:var(--accent)}
+
+  .steps{margin:0; padding-left:20px; font-size:.9rem; color:var(--muted)}
+  .steps li{margin-bottom:5px}
+  .steps li:last-child{margin-bottom:0}
+
+  .note{
+    background:var(--note-bg); border-radius:10px; padding:14px 16px;
+    font-size:.87rem; color:var(--muted);
+  }
+  .note strong{color:var(--text)}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.82em;
+    background:var(--note-bg); padding:2px 5px; border-radius:4px; word-break:break-all;
+  }
+  .unset{border-style:dashed; opacity:.75}
+  .unset .row{display:none}
+  .setup-hint{display:none; font-size:.87rem; color:var(--muted); margin:0}
+  .unset .setup-hint{display:block}
+  footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border);
+         font-size:.85rem; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1 id="pageTitle">School Calendars</h1>
+  <p class="sub">Add both calendars once, and school dates stay current on your phone all year.</p>
+</header>
+
+<section>
+  <h2>1 · Which calendar do you use?</h2>
+  <div class="seg" id="seg" role="group" aria-label="Choose your calendar app">
+    <button data-p="google"  aria-pressed="false">Google</button>
+    <button data-p="apple"   aria-pressed="false">Apple</button>
+    <button data-p="outlook" aria-pressed="false">Outlook</button>
+    <button data-p="other"   aria-pressed="false">Other</button>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Add the calendars</h2>
+
+  <div class="card" id="cardDistrict">
+    <h3>District Events</h3>
+    <p>No-school days, breaks, holidays, and end-of-term dates. Published and kept up to date by the district.</p>
+    <div class="row">
+      <a class="btn" id="btnDistrict" href="#" target="_blank" rel="noopener">Add calendar</a>
+      <button class="btn ghost" data-copy="district">Copy link</button>
+    </div>
+  </div>
+
+  <div class="card" id="cardPta">
+    <h3 id="ptaName">PTA Events</h3>
+    <p>Fundraisers, family nights, volunteer sign-ups, and everything the PTA runs.</p>
+    <div class="row">
+      <a class="btn" id="btnPta" href="#" target="_blank" rel="noopener">Add calendar</a>
+      <button class="btn ghost" data-copy="pta">Copy link</button>
+    </div>
+    <p class="setup-hint">⚠️ Not published yet — set <code>PTA_CALENDAR_ID</code> in this page's source.</p>
+  </div>
+
+  <ol class="steps" id="steps"></ol>
+</section>
+
+<section id="lagNote" hidden>
+  <div class="note">
+    <strong>Heads up:</strong> your calendar app checks for updates on its own schedule, so a
+    brand-new PTA event may take a few hours to show up. For anything time-sensitive,
+    watch for the PTA email too.
+  </div>
+</section>
+
+<footer>
+  <p>Trouble adding a calendar? Reply to the PTA newsletter and we'll walk you through it.</p>
+</footer>
+
+</div>
+
+<script>
+/* ─── CONFIG ─────────────────────────────────────────────────────────────
+   Fill in PTA_CALENDAR_ID after creating the PTA calendar (see SETUP.md).
+   Everything else is derived automatically.                              */
+const SCHOOL_NAME      = "";   // e.g. "Cedar Ridge Elementary" — blank uses generic wording
+const PTA_CALENDAR_ID  = "";   // e.g. "abc123...@group.calendar.google.com"
+const DISTRICT_CAL_ID  = "c_e107c6330df83760fdfc1b2a39762a8ee1575bcf8e898c195304658d6b3f386a@group.calendar.google.com";
+/* ───────────────────────────────────────────────────────────────────────── */
+
+const ics     = id => `https://calendar.google.com/calendar/ical/${encodeURIComponent(id)}/public/basic.ics`;
+const webcal  = id => ics(id).replace(/^https:/, "webcal:");
+const gAdd    = id => `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(id)}`;
+const outlook = (id, name) =>
+  `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(ics(id))}&name=${encodeURIComponent(name)}`;
+
+const CALS = {
+  district: { id: DISTRICT_CAL_ID, name: "District Events" },
+  pta:      { id: PTA_CALENDAR_ID, name: (SCHOOL_NAME ? SCHOOL_NAME + " PTA" : "PTA Events") }
+};
+
+const STEPS = {
+  google: ["Tap <b>Add calendar</b> — it opens Google Calendar.",
+           "Confirm <b>Add</b> when Google asks.",
+           "Repeat for the second calendar."],
+  apple:  ["Tap <b>Add calendar</b> — it opens the Calendar app.",
+           "Tap <b>Subscribe</b>, then <b>Add</b>.",
+           "On a Mac you can set <i>Auto-refresh</i> to <b>Every hour</b> for faster updates."],
+  outlook:["Tap <b>Add calendar</b> — it opens Outlook on the web.",
+           "Confirm <b>Import</b>.",
+           "Work or school account? Use <b>Copy link</b>, then Outlook → Add calendar → Subscribe from web."],
+  other:  ["Tap <b>Copy link</b>.",
+           "In your calendar app, look for <b>Subscribe from web</b>, <b>Add by URL</b>, or <b>Import from internet</b>.",
+           "Paste the link. Repeat for the second calendar."]
+};
+
+function guess() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod|Macintosh/.test(ua) && !/CriOS|Android/.test(ua)) return "apple";
+  if (/Android/.test(ua)) return "google";
+  return "google";
+}
+
+let platform = localStorage.getItem("calPlatform") || guess();
+
+function linkFor(key) {
+  const c = CALS[key];
+  if (!c.id) return "#";
+  if (platform === "google")  return gAdd(c.id);
+  if (platform === "apple")   return webcal(c.id);
+  if (platform === "outlook") return outlook(c.id, c.name);
+  return ics(c.id);
+}
+
+function render() {
+  document.querySelectorAll("#seg button").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.p === platform)));
+
+  document.getElementById("btnDistrict").href = linkFor("district");
+  document.getElementById("btnPta").href      = linkFor("pta");
+
+  document.getElementById("steps").innerHTML =
+    STEPS[platform].map(s => `<li>${s}</li>`).join("");
+
+  document.getElementById("lagNote").hidden = (platform === "google");
+
+  if (SCHOOL_NAME) {
+    document.getElementById("pageTitle").textContent = SCHOOL_NAME + " Calendars";
+    document.title = SCHOOL_NAME + " Calendars — Subscribe";
+  }
+  document.getElementById("ptaName").textContent = CALS.pta.name;
+  document.getElementById("cardPta").classList.toggle("unset", !PTA_CALENDAR_ID);
+
+  localStorage.setItem("calPlatform", platform);
+}
+
+document.getElementById("seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-p]");
+  if (b) { platform = b.dataset.p; render(); }
+});
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-copy]");
+  if (!b) return;
+  const c = CALS[b.dataset.copy];
+  if (!c.id) return;
+  try {
+    await navigator.clipboard.writeText(ics(c.id));
+    const was = b.textContent;
+    b.textContent = "Copied ✓";
+    setTimeout(() => { b.textContent = was; }, 1800);
+  } catch { prompt("Copy this link:", ics(c.id)); }
+});
+
+render();
+</script>
+</body>
+</html>
